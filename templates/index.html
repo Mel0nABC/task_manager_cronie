@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>TASK MANAGER FOR CRONIE</h1>
+    <h2>Distribución linux: {{linux_distribution}}</h2>
+    <h2>Cronie status: {{cronie_installet}}</h2>
+
+
+    <select id="user_list">
+        <option selected disabled>Elige un usuario</option>
+        {% for user in user_list %}
+        <option>{{user}}</option>
+        {% endfor %}
+    </select>
+    <button id="update_table_btn">Actualizar tabla</button>
+
+    <div id="status_update">
+
+    </div>
+
+    <table id="task_table" class="mi-tabla">
+        <thead>
+            <tr>
+                <th id="minut">MINUTOS</th>
+                <th id="hour">HORA</th>
+                <th id="day">DÍA</th>
+                <th id="month">MES</th>
+                <th id="week_day">DÍA SEMANA</th>
+                <th id="command">COMANDO</th>
+                <th id="status">ACTIVADO</th>
+            </tr>
+        </thead>
+        <tbody id="table_task_body">
+
+        </tbody>
+
+    </table>
+
+
+</body>
+
+</html>
+
+<script>
+
+    let actual_user = null;
+
+    window.onload = () => {
+
+        const user_list = document.getElementById("user_list");
+        const update_table_btn = document.getElementById("update_table_btn");
+        update_table_btn.disabled = true;
+        const user_list_select = document.getElementById("user_list");
+        user_list_select.value = "Elige un usuario";
+
+
+
+
+        update_table_btn.addEventListener("click", () => {
+            user_select_value = user_list_select.value
+            if (user_select_value != "Elige un usuario") {
+                load_task_table();
+                return;
+            }
+            alert("Debe elegir un usuario antes de poder usar la función actualizar tabla")
+
+        })
+
+        user_list.addEventListener("change", () => {
+            actual_user = user_list.value;
+            load_task_table();
+            update_table_btn.disabled = false;
+        })
+
+    }
+
+    function load_task_table() {
+
+        const user = user_list.value
+
+        fetch("/user_task/" + user, { method: "POST" })
+            .then(response => response.json())
+            .then(data => {
+
+                const tbody_task = document.getElementById("table_task_body")
+                tbody_task.innerHTML = "";
+                for (let i = 0; i < data.length; i++) {
+
+                    var row = `
+                        <tr ${data[i]["status"] ? 'class="enabled"' : 'class="disabled"'}>
+                            <td id="minut"><input class="value" value="${data[i]["minut"]}"></td>
+                            <td id="hour"><input class="value" value="${data[i]["hour"]}"></td>
+                            <td id="day"><input class="value" value="${data[i]["day"]}"></td>
+                            <td id="month"><input class="value" value="${data[i]["month"]}"></td>
+                            <td id="week_day"><input class="value" value="${data[i]["week_day"]}"></td>
+                            <td id="command">
+                                <input class="value" value="${data[i]["command"]}">
+                            </td>
+                            <td>
+                                <select class="status">
+                                    <option value="true">Activado</option>
+                                    <option value="false">Desactivado</option>
+                                </select>
+                            </td>
+                        </tr>
+                    `
+                    // tbody_task.innerHTML += row;
+                    tbody_task.insertAdjacentHTML("beforeend", row)
+                    const status_selects = document.getElementsByClassName("status")
+
+                    status_selects[i].value = String(data[i]["status"])
+
+                    // status.value = String(data[i]["status"])
+                    // console.log(status.value)
+                }
+                update_value_btn()
+            })
+
+
+    }
+
+    let old_value;
+
+    function update_value_btn() {
+        const all_inputs = document.getElementsByClassName("value")
+        const all_selects = document.getElementsByClassName("status")
+
+        for (let i = 0; i < all_selects.length; i++) {
+            const select = all_selects[i];
+
+            select.addEventListener("change", () => {
+                console.log("lala -< " + select.value)
+                const json = get_json_for_update();
+                update_values(json);
+            })
+
+        }
+
+        for (let i = 0; i < all_inputs.length; i++) {
+            const input = all_inputs[i];
+            input.addEventListener("click", () => {
+                old_value = input.value;
+            })
+
+            input.addEventListener("blur", () => {
+
+                if (old_value == input.value)
+                    return;
+
+                if (!validate_value(input))
+                    return;
+
+                const json = get_json_for_update();
+                update_values(json, input);
+            });
+
+        }
+    }
+
+    function update_values(json_stringify, input) {
+        const status_update = document.getElementById("status_update");
+
+        const formData = new FormData()
+        formData.append("user", actual_user)
+        formData.append("data_str", json_stringify)
+        const options = {
+            method:"POST",
+            body: formData
+        }
+        fetch("/update_values", options)
+            .then(response => response.json())
+            .then(data => {
+                const result = data["status"];
+                if (result == "error") {
+                    alert("Ha ocurrido un error al actualizar los datos, actualice la página.");
+                    load_task_table();
+                    status_update.innerHTML = "<p>ERROR AL ACTUALIZAR</p>"
+                    status_update.focus()
+                    return;
+                }
+                status_update.innerHTML = "<p>ACTUALIZADO</p>"
+                status_update.focus()
+                load_task_table()
+                // alert("Datos actualizados satisfactoriamente.")
+            })
+            .catch(error => console.error("error", error))
+    }
+
+    function get_json_for_update() {
+
+        const tbody_task = document.getElementById("task_table")
+        const tabla = document.querySelector("#task_table");
+        const encabezados = Array.from(tabla.querySelectorAll("thead th")).map(th => th.id);
+
+        const filas = tabla.querySelectorAll("tbody tr");
+
+        const datosJSON = Array.from(filas).map(fila => {
+            const celdas = fila.querySelectorAll("input");
+            const all_status = fila.querySelector("select")
+            const filaObj = {};
+            encabezados.forEach((encabezado, i) => {
+                filaObj[encabezado] = celdas[i]?.value || "";
+                if (encabezado == "status") {
+                    filaObj[encabezado] = all_status.value
+                }
+            });
+            return filaObj;
+        });
+        const json = JSON.stringify(datosJSON, null, 2);
+        // console.log(json)
+        return json;
+
+    }
+
+
+
+    function validate_value(input) {
+        const key = input.parentElement.id;
+        const value = input.value;
+        const dict = { [key]: value }
+
+        if (!/^[\d]+$/.test(value) && key != "command" && !/^[\*]+$/.test(value)) {
+            alert("❌ Solo se permiten números o *");
+            input.value = old_value
+            return;
+        }
+
+
+        if ("minut" in dict) {
+            if (value < 0 || value > 59) {
+                input.value = old_value
+                alert("❌, valores permitidos del 0 al 59");
+                return;
+            }
+        }
+
+        if ("hour" in dict) {
+            if (value < 0 || value > 23) {
+                input.value = old_value
+                alert("❌, valores permitidos del 0 al 23");
+                return;
+            }
+        }
+
+        if ("day" in dict) {
+            if (value < 1 || value > 31) {
+                input.value = old_value
+                alert("❌, valores permitidos del 1 al 31");
+                return;
+            }
+        }
+
+        if ("month" in dict) {
+            if (value < 1 || value > 12) {
+                input.value = old_value
+                alert("❌, valores permitidos del 1 al 12");
+                return;
+            }
+        }
+
+        if ("week_day" in dict) {
+            if (value < 0 || value > 7) {
+                alert("❌, valores permitidos del 0 al 7, siendo el 0 = domingo");
+                input.value = old_value
+                return;
+            }
+        }
+
+        if ("command" in dict) {
+            const regexInicio = /^\/(?!\/)/;
+            const regexNoDobles = /\/\/+/;
+
+            if (!regexInicio.test(value)) {
+                alert("❌ La ruta absoluta no comienza por / o tiene más de una");
+                input.value = old_value
+                return;
+            }
+
+            if (regexNoDobles.test(value)) {
+                alert("❌ La ruta absoluta contiene dos o más barras en algún lugar");
+                input.value = old_value
+                return;
+            }
+        }
+
+        return true;
+    }
+
+
+
+</script>
+
+<style>
+    .mi-tabla {
+        margin-top: 5vh;
+        width: 100%;
+        border-collapse: collapse;
+        /* Bordes unidos en una sola línea */
+        text-align: center;
+        /* Centra el texto en celdas */
+    }
+
+    .mi-tabla th,
+    .mi-tabla td {
+        border: 1px solid black;
+        /* Línea sólida en los bordes */
+        padding: 8px;
+
+        input {
+            border: none;
+            text-align: center;
+            cursor: pointer;
+            background-color: transparent;
+            width: 100%;
+        }
+
+    }
+
+    .mi-tabla thead {
+        background-color: #f2f2f2;
+        /* Color para el título de las columnas */
+        color: #333;
+        /* Color del texto de encabezado */
+        font-weight: bold;
+    }
+
+    .enabled {
+        background-color: green;
+    }
+
+    .disabled {
+        background-color: grey;
+    }
+</style>
