@@ -1,4 +1,5 @@
-import os, stat
+import os
+import stat
 
 
 class cronie_task:
@@ -23,25 +24,29 @@ class cronie_task:
         if not hour == "*":
             hour = int(hour)
             if hour < 0 or hour > 23:
-                raise ValueError({"error": "Las horas están comprendidas de 0h a 23h"})
+                raise ValueError({"error": ("Las horas están "
+                                            "comprendidas de 0h a 23h")})
         self.hour = hour
         if not day == "*":
             day = int(day)
             if day < 1 or day > 31:
-                raise ValueError({"error": "Los días están comprendidos de 1 a 31"})
+                raise ValueError({"error": ("Los días están"
+                                            " comprendidos de 1 a 31")})
         self.day = day
 
         if not month == "*":
             month = int(month)
             if month < 1 or month > 12:
-                raise ValueError({"error": "Los meses están comprendidos de 1 a 12."})
+                raise ValueError({"error": ("Los meses están"
+                                            " comprendidos de 1 a 12.")})
         self.month = month
         if not week_day == "*":
             week_day = int(week_day)
             if week_day < 0 or week_day > 7:
                 raise ValueError(
                     {
-                        "error": "Los días de la semana están comprendidos de 1 a 7. Siendo domingo 0."
+                        "error": "Los días de la semana están "
+                        "comprendidos de 1 a 7. Siendo domingo 0."
                     }
                 )
         self.week_day = week_day
@@ -55,19 +60,25 @@ class cronie_task:
             )
 
         try:
-            with open(command) as executable_command:
+            with open(command):
                 modo = os.stat(command).st_mode
                 executable = bool(modo & stat.S_IXUSR)
                 if not executable:
                     raise ValueError(
                         {
-                            "error": "El archivo del comando, no tiene permisos de ejecución."
+                            "error": (
+                                "El archivo del comando,"
+                                " no tiene permiso de ejecución."
+                            )
                         }
                     )
         except FileNotFoundError:
             raise ValueError(
                 {
-                    "error": "El comando que ha elegido, no existe, archivo no encontrado."
+                    "error": (
+                        "El comando que ha elegido,"
+                        " no existe, archivo no encontrado."
+                    )
                 }
             )
 

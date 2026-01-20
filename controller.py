@@ -1,4 +1,3 @@
-import subprocess
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -49,9 +48,10 @@ def set_user_task(user: str = Form(...), data_str: str = Form(...)):
         status = row["status"]
 
         try:
-            cron = cronie_task(minut, hour, day, month, week_day, command, status)
+            cronie_task(minut, hour, day, month, week_day, command, status)
         except ValueError as e:
-            return {"status": "error"}
+            return {"status": f"error: {e}"}
+
     c_manager.write_config_file(user, data)
 
     return {"status": True}
