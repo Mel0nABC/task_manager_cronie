@@ -1,11 +1,11 @@
 import subprocess
 import os
-from entity.mlnCronManagerCronie_task import cronie_task
+from entity.mlnCronManagerCronie_task import mlnCronManagerCronie_task
 from typing import Dict, Any
 from pathlib import Path
 
 
-class cronie_manager:
+class mlnCronManagerCronie_manager:
 
     def __init__(self):
         self.result = None
@@ -63,7 +63,7 @@ class cronie_manager:
                     command = Path("".join(row_split[5:]))
 
                     task_list.append(
-                        cronie_task(minut, hour, day, month, week_day, command, status)  # noqa: E501
+                        mlnCronManagerCronie_task(minut, hour, day, month, week_day, command, status)  # noqa: E501
                     )
 
         except FileNotFoundError:

@@ -2,7 +2,7 @@ import os
 import stat
 
 
-class cronie_task:
+class mlnCronManagerCronie_task:
 
     def __init__(
         self: str,
