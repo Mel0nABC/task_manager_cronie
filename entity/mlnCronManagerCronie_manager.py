@@ -1,6 +1,6 @@
 import subprocess
 import os
-from cronie_task import cronie_task
+from entity.mlnCronManagerCronie_task import cronie_task
 from typing import Dict, Any
 from pathlib import Path
 
@@ -39,7 +39,7 @@ class cronie_manager:
             print("El archivo no existe")
 
     def read_config_file(self, user: str) -> list:
-
+        print("USER: " + user)
         task_list = []
 
         try:
@@ -62,9 +62,9 @@ class cronie_manager:
                     week_day = row_split[4]
                     command = Path("".join(row_split[5:]))
 
-                    task_list.append(cronie_task(
-                        minut, hour, day, month, week_day, command, status
-                    ))
+                    task_list.append(
+                        cronie_task(minut, hour, day, month, week_day, command, status)  # noqa: E501
+                    )
 
         except FileNotFoundError:
             print("El archivo no existe")

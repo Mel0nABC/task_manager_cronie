@@ -85,12 +85,14 @@
 
         const user = user_list.value
 
-        fetch("/user_task/" + user, { method: "POST" })
+        fetch("/api/task/" + user, { method: "GET" })
             .then(response => response.json())
             .then(data => {
 
                 const tbody_task = document.getElementById("table_task_body")
                 tbody_task.innerHTML = "";
+
+
                 for (let i = 0; i < data.length; i++) {
 
                     var row = `
@@ -171,10 +173,10 @@
         formData.append("user", actual_user)
         formData.append("data_str", json_stringify)
         const options = {
-            method:"POST",
+            method: "put",
             body: formData
         }
-        fetch("/update_values", options)
+        fetch("/api/task", options)
             .then(response => response.json())
             .then(data => {
                 const result = data["status"];
