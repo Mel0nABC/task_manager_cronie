@@ -1,9 +1,12 @@
 from fastapi import FastAPI, Request, Form, APIRouter
+from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from service.mlnCronManagerCronie_service import mlnCronManagerCronie_service
 
 
 app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 route = APIRouter(prefix="/api")
 
 cronie_service = mlnCronManagerCronie_service()

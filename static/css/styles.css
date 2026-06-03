@@ -1,0 +1,40 @@
+  .mi-tabla {
+      margin-top: 5vh;
+      width: 100%;
+      border-collapse: collapse;
+      /* Bordes unidos en una sola línea */
+      text-align: center;
+      /* Centra el texto en celdas */
+  }
+
+  .mi-tabla th,
+  .mi-tabla td {
+      border: 1px solid black;
+      /* Línea sólida en los bordes */
+      padding: 8px;
+
+      input {
+          border: none;
+          text-align: center;
+          cursor: pointer;
+          background-color: transparent;
+          width: 100%;
+      }
+
+  }
+
+  .mi-tabla thead {
+      background-color: #f2f2f2;
+      /* Color para el título de las columnas */
+      color: #333;
+      /* Color del texto de encabezado */
+      font-weight: bold;
+  }
+
+  .enabled {
+      background-color: green;
+  }
+
+  .disabled {
+      background-color: grey;
+  }
