@@ -55,4 +55,3 @@ def set_user_task(user: str = Form(...), data_str: str = Form(...)):
     c_manager.write_config_file(user, data)
 
     return {"status": True}
-
